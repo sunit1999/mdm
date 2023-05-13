@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/app_logo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/app_logo_cd"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/app_name"
+        style="@style/TextAppearance.AppCompat.Body1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:gravity="center_vertical"
+        app:layout_constraintBottom_toBottomOf="@id/app_logo"
+        app:layout_constraintEnd_toStartOf="@id/open_app_cta"
+        app:layout_constraintStart_toEndOf="@id/app_logo"
+        app:layout_constraintTop_toTopOf="@id/app_logo"
+        tools:text="Chrome" />
+
+    <Button
+        android:id="@+id/open_app_cta"
+        android:layout_width="136dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/app_name"
+        android:text="@string/open_app"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
