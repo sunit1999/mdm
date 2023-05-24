@@ -3,10 +3,17 @@ package com.sunit.myapplication.ui
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
 import android.widget.Toast
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import com.sunit.myapplication.R
 import com.sunit.myapplication.data.ApiService
 import com.sunit.myapplication.databinding.FragmentWelcomeBinding
 import com.sunit.myapplication.ui.adapter.AppsListAdapter
@@ -18,8 +25,10 @@ class WelcomeFragment : Fragment() {
     }}
 
     private lateinit var binding: FragmentWelcomeBinding
+    private lateinit var searchView: SearchView
     private lateinit var pm: PackageManager
     private var denyList = emptyList<String>()
+    private val appsList = mutableListOf<AppInfo>()
 
     private val  welcomeRepository by lazy {
         WelcomeRepository(api = ApiService.service)
@@ -41,6 +50,7 @@ class WelcomeFragment : Fragment() {
         pm = requireActivity().packageManager
 
         setUpObservers()
+        initMenu()
         initUi()
         welcomeViewModel.getDenyList()
     }
@@ -53,13 +63,16 @@ class WelcomeFragment : Fragment() {
 
     private fun initUi() {
         val packages = pm.getInstalledPackages(PackageManager.GET_META_DATA)
-        val appsList = mutableListOf<AppInfo>()
         packages.forEach {
             val info = pm.getApplicationInfo(it.packageName, 0)
             val icon = pm.getApplicationIcon(it.packageName)
             val displayName = pm.getApplicationLabel(info).toString()
 
             appsList.add(AppInfo(displayName, it.packageName, icon))
+        }
+
+        appsList.sortBy {
+            it.displayName
         }
 
         binding.appsListRv.adapter = appsListAdapter
@@ -73,5 +86,60 @@ class WelcomeFragment : Fragment() {
             val intent = pm.getLaunchIntentForPackage(item.pkgName)
             startActivity(intent)
         }
+    }
+
+    private fun initMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu, menu)
+
+                initSearchMenuItem(menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return true
+            }
+
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun initSearchMenuItem(menu: Menu) {
+        val searchMenuItem = menu.findItem(R.id.action_search)
+        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                appsListAdapter.submitList(appsList)
+                return true
+            }
+        })
+
+        searchView = searchMenuItem.actionView!! as SearchView
+        setSearchQueryListener()
+    }
+
+    private fun setSearchQueryListener() {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(query: String?): Boolean {
+                filterAppsList(query.orEmpty())
+                return true
+            }
+        })
+
+        searchView.onActionViewCollapsed()
+    }
+
+    private fun filterAppsList(query: String) {
+        val filteredList = appsList.filter {
+            it.displayName.contains(query, ignoreCase = true)
+        }
+
+        appsListAdapter.submitList(filteredList)
     }
 }
