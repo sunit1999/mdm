@@ -30,13 +30,14 @@ class WelcomeFragment : Fragment() {
     private var denyList = emptyList<String>()
     private val appsList = mutableListOf<AppInfo>()
 
-    private val  welcomeRepository by lazy {
+    private val welcomeRepository by lazy {
         WelcomeRepository(api = ApiService.service)
     }
 
     private val welcomeViewModel by lazy {
         WelcomeViewModel(welcomeRepository)
     }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -82,10 +83,15 @@ class WelcomeFragment : Fragment() {
     private fun handleButtonClick(item: AppInfo) {
         if(denyList.contains(item.pkgName)) {
             Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
-        } else {
-            val intent = pm.getLaunchIntentForPackage(item.pkgName)
-            startActivity(intent)
+            return
         }
+        
+        val intent = pm.getLaunchIntentForPackage(item.pkgName)
+
+        if (intent?.resolveActivity(pm) != null)
+            startActivity(intent)
+        else 
+            Toast.makeText(context, "App cannot be launched", Toast.LENGTH_SHORT).show()
     }
 
     private fun initMenu() {
